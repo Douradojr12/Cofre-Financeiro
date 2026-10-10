@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#35121E">
+<title>Cofre — Controle Financeiro Pessoal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Barra fina de progresso (feedback visual ao trocar de tela) -->
+  <div class="top-progress" id="topProgress" aria-hidden="true"></div>
+
+  <!-- Overlay usado no menu mobile -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- ===================== TELA DE AUTENTICAÇÃO ===================== -->
+  <div class="auth-screen" id="authScreen">
+    <div class="auth-card">
+      <div class="brand brand-auth">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>
+            <path d="M3 10h18"/>
+            <circle cx="16.5" cy="14.5" r="1.4" fill="currentColor" stroke="none"/>
+          </svg>
+        </span>
+        <div class="brand-text">
+          <span class="brand-name">Cofre</span>
+          <span class="brand-sub">controle financeiro</span>
+        </div>
+      </div>
+
+      <!-- ---------- LOGIN ---------- -->
+      <form class="auth-form" id="loginForm" novalidate>
+        <h2>Entrar</h2>
+        <p class="auth-subtitle">Acesse seus dados salvos neste navegador.</p>
+
+        <label class="field">
+          <span>E-mail</span>
+          <input type="email" id="loginEmail" autocomplete="email" placeholder="voce@email.com">
+        </label>
+
+        <label class="field">
+          <span>Senha</span>
+          <input type="password" id="loginSenha" autocomplete="current-password" placeholder="Sua senha">
+        </label>
+
+        <p class="form-message" id="loginMessage" role="alert"></p>
+
+        <button type="submit" class="primary-btn">Entrar</button>
+
+        <p class="auth-switch">Ainda não tem conta? <a href="#" id="showCadastro">Criar conta</a></p>
+      </form>
+
+      <!-- ---------- CADASTRO ---------- -->
+      <form class="auth-form is-hidden" id="cadastroForm" novalidate>
+        <h2>Criar conta</h2>
+        <p class="auth-subtitle">Seus dados ficam salvos apenas neste navegador.</p>
+
+        <label class="field">
+          <span>Nome</span>
+          <input type="text" id="cadastroNome" autocomplete="name" placeholder="Seu nome">
+        </label>
+
+        <label class="field">
+          <span>E-mail</span>
+          <input type="email" id="cadastroEmail" autocomplete="email" placeholder="voce@email.com">
+        </label>
+
+        <label class="field">
+          <span>Senha</span>
+          <input type="password" id="cadastroSenha" autocomplete="new-password" placeholder="Mínimo de 6 caracteres">
+        </label>
+
+        <label class="field">
+          <span>Confirmar senha</span>
+          <input type="password" id="cadastroConfirmarSenha" autocomplete="new-password" placeholder="Repita a senha">
+        </label>
+
+        <p class="form-message" id="cadastroMessage" role="alert"></p>
+
+        <button type="submit" class="primary-btn">Criar conta</button>
+
+        <p class="auth-switch">Já tem conta? <a href="#" id="showLogin">Voltar para login</a></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================== APP ===================== -->
+  <div class="app is-hidden" id="appScreen">
+
+    <!-- ===================== SIDEBAR ===================== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>
+            <path d="M3 10h18"/>
+            <circle cx="16.5" cy="14.5" r="1.4" fill="currentColor" stroke="none"/>
+          </svg>
+        </span>
+        <div class="brand-text">
+          <span class="brand-name">Cofre</span>
+          <span class="brand-sub">controle financeiro</span>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Navegação principal">
+        <span class="nav-indicator" id="navIndicator" aria-hidden="true"></span>
+        <span class="nav-label">Visão geral</span>
+        <a class="nav-item is-active" href="#" data-nav="dashboard">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="8" height="10" rx="2"/><rect x="13" y="3" width="8" height="6" rx="2"/><rect x="13" y="11" width="8" height="10" rx="2"/><rect x="3" y="15" width="8" height="6" rx="2"/></svg>
+          <span>Painel</span>
+        </a>
+
+        <span class="nav-label">Movimentações</span>
+        <a class="nav-item" href="#" data-nav="receitas">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+          <span>Receitas</span>
+        </a>
+        <a class="nav-item" href="#" data-nav="despesas">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 5v14"/><path d="m5 12 7 7 7-7"/></svg>
+          <span>Despesas</span>
+        </a>
+        <a class="nav-item" href="#" data-nav="parcelas">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="10" height="4" rx="1"/></svg>
+          <span>Parcelas</span>
+        </a>
+        <a class="nav-item" href="#" data-nav="cartoes">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+          <span>Cartões</span>
+        </a>
+
+        <span class="nav-label">Análises</span>
+        <a class="nav-item" href="#" data-nav="relatorios">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19V9"/><path d="M11 19V4"/><path d="M18 19v-7"/></svg>
+          <span>Relatórios</span>
+        </a>
+
+        <span class="nav-label">Conta</span>
+        <a class="nav-item is-disabled" href="#" data-nav="config" aria-disabled="true">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+          <span>Configurações</span>
+          <span class="nav-tag">em breve</span>
+        </a>
+        <a class="nav-item" href="#" id="navSair">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+          <span>Sair</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="storage-pill" id="storagePill">
+          <span class="storage-dot"></span>
+          <span>Dados salvos neste navegador</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===================== CONTEÚDO ===================== -->
+    <div class="main">
+
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn" aria-label="Abrir menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg>
+        </button>
+
+        <div class="topbar-title">
+          <h1 id="pageTitle">Painel</h1>
+          <p id="pageSubtitle">—</p>
+        </div>
+
+        <div class="topbar-actions">
+          <button class="icon-btn" title="Notificações" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </button>
+          <span class="user-name" id="userName">—</span>
+          <div class="avatar" id="userAvatar" title="Sua conta">—</div>
+          <button class="icon-btn" id="logoutBtn" title="Sair">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="content">
+
+        <!-- ===================== VIEW: DASHBOARD ===================== -->
+        <section class="view" id="view-dashboard">
+
+          <div class="view-heading">
+            <h2 id="dashboardGreeting">Olá! 👋</h2>
+            <p>Aqui está o resumo da sua conta hoje.</p>
+          </div>
+
+          <!-- HERO — Saldo -->
+          <section class="hero-balance" id="heroBalance">
+            <div class="hero-top">
+              <span class="hero-label">Saldo atual</span>
+              <button class="ghost-btn" id="toggleVisibility" aria-pressed="false">
+                <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span id="eyeLabel">ocultar</span>
+              </button>
+            </div>
+
+            <strong class="hero-value" id="heroValue">R$&nbsp;0,00</strong>
+
+            <span class="hero-status" id="heroStatus">
+              <svg id="heroStatusIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+              <span id="heroStatusText">Saldo positivo</span>
+            </span>
+
+            <div class="hero-stats">
+              <div class="stat stat-income">
+                <span class="stat-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+                </span>
+                <div>
+                  <span class="stat-label">Total de receitas</span>
+                  <span class="stat-value" id="statReceitas">R$ 0,00</span>
+                </div>
+              </div>
+              <div class="stat stat-expense">
+                <span class="stat-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14"/><path d="m5 12 7 7 7-7"/></svg>
+                </span>
+                <div>
+                  <span class="stat-label">Total de despesas</span>
+                  <span class="stat-value" id="statDespesas">R$ 0,00</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Cards de indicadores -->
+          <section class="kpi-section">
+            <div class="summary-grid">
+              <div class="summary-card">
+                <span class="summary-icon icon-green">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+                </span>
+                <div>
+                  <span class="summary-label">Receitas</span>
+                  <span class="summary-value" id="kpiReceitas">R$ 0,00</span>
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <span class="summary-icon icon-red">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 5v14"/><path d="m5 12 7 7 7-7"/></svg>
+                </span>
+                <div>
+                  <span class="summary-label">Despesas</span>
+                  <span class="summary-value" id="kpiDespesas">R$ 0,00</span>
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <span class="summary-icon icon-green" id="kpiSaldoIcon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="14.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+                </span>
+                <div>
+                  <span class="summary-label">Saldo</span>
+                  <span class="summary-value" id="kpiSaldo">R$ 0,00</span>
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <span class="summary-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v10"/><path d="M9 10a2 2 0 0 1 2-2h1.5a2 2 0 0 1 0 4H11a2 2 0 0 0 0 4h1.5a2 2 0 0 0 2-2"/></svg>
+                </span>
+                <div>
+                  <span class="summary-label">Renda comprometida</span>
+                  <span class="summary-value" id="kpiPercentual">—</span>
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <span class="summary-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="10" height="4" rx="1"/></svg>
+                </span>
+                <div>
+                  <span class="summary-label">Parcelas pendentes</span>
+                  <span class="summary-value" id="kpiParcelasPendentes">0</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Cartões de crédito (faturas ficam separadas das despesas registradas) -->
+          <section class="cartoes-section">
+            <div class="section-heading">
+              <h2>Cartões de crédito</h2>
+              <p>Faturas e limites — contados à parte das despesas registradas, para nada ser somado duas vezes.</p>
+            </div>
+
+            <div class="summary-grid" id="dashCartoesGrid">
+              <div class="summary-card">
+                <span class="summary-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+                </span>
+                <div>
+                  <span class="summary-label">Fatura atual</span>
+                  <span class="summary-value" id="dashFaturaAtual">R$ 0,00</span>
+                  <span class="summary-sub" id="dashFaturaAtualSub">—</span>
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <span class="summary-icon icon-red">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18"/><path d="M5 12l7-9 7 9"/><path d="M5 21h14"/></svg>
+                </span>
+                <div>
+                  <span class="summary-label">Limite utilizado</span>
+                  <span class="summary-value" id="dashLimiteUsado">R$ 0,00</span>
+                  <span class="summary-sub" id="dashLimiteSub">—</span>
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <span class="summary-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M3 10h18"/></svg>
+                </span>
+                <div>
+                  <span class="summary-label">Próximo vencimento</span>
+                  <span class="summary-value" id="dashProxVenc">—</span>
+                  <span class="summary-sub" id="dashProxVencSub">—</span>
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <span class="summary-icon icon-green" id="dashSaldoPrevistoIcon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="14.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+                </span>
+                <div>
+                  <span class="summary-label">Saldo previsto após faturas</span>
+                  <span class="summary-value" id="dashSaldoPrevisto">R$ 0,00</span>
+                  <span class="summary-sub" id="dashSaldoPrevistoSub">—</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="empty-state is-hidden" id="dashCartoesEmpty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+              <p>Nenhum cartão cadastrado ainda.</p>
+              <span>Cadastre seus cartões para acompanhar limites e faturas. <a href="#" class="link-action" data-goto="cartoes">Ir para Cartões</a></span>
+            </div>
+          </section>
+
+          <!-- Resumo financeiro + mensagem inteligente -->
+          <section class="resumo-section">
+            <div class="form-card resumo-card">
+              <h3>Resumo financeiro</h3>
+
+              <p class="resumo-mensagem" id="resumoMensagem">
+                <svg id="resumoMensagemIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+                <span id="resumoMensagemTexto">Cadastre suas receitas e despesas para ver como está sua situação financeira.</span>
+              </p>
+
+              <ul class="resumo-lista">
+                <li><span>Total recebido</span><strong id="resumoTotalRecebido">R$ 0,00</strong></li>
+                <li><span>Total gasto</span><strong id="resumoTotalGasto">R$ 0,00</strong></li>
+                <li><span>Saldo</span><strong id="resumoSaldo">R$ 0,00</strong></li>
+                <li><span>% da renda comprometida</span><strong id="resumoPercentual">—</strong></li>
+                <li><span>Maior categoria de gasto</span><strong id="resumoMaiorCategoria">—</strong></li>
+                <li><span>Quantidade de despesas</span><strong id="resumoQtdDespesas">0</strong></li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- Gráficos -->
+          <section class="charts-section">
+            <div class="section-heading">
+              <h2>Gráficos</h2>
+              <p>Visualize como suas finanças estão se comportando.</p>
+            </div>
+
+            <div class="charts-grid">
+              <div class="chart-card">
+                <h3>Receitas x despesas</h3>
+                <div class="chart-canvas-wrap">
+                  <canvas id="graficoReceitasDespesas"></canvas>
+                  <div class="empty-state is-hidden" id="graficoReceitasDespesasEmpty">
+                    <p>Sem lançamentos ainda.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="chart-card">
+                <h3>Despesas por categoria</h3>
+                <div class="chart-canvas-wrap">
+                  <canvas id="graficoCategorias"></canvas>
+                  <div class="empty-state is-hidden" id="graficoCategoriasEmpty">
+                    <p>Nenhuma despesa cadastrada ainda.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="chart-card chart-card-wide">
+                <h3>Evolução do saldo</h3>
+                <div class="chart-canvas-wrap">
+                  <canvas id="graficoEvolucaoSaldo"></canvas>
+                  <div class="empty-state is-hidden" id="graficoEvolucaoSaldoEmpty">
+                    <p>Adicione receitas ou despesas para ver a evolução do saldo.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+
+        </section>
+
+        <!-- ===================== VIEW: RECEITAS ===================== -->
+        <section class="view is-hidden" id="view-receitas">
+
+          <div class="record-layout">
+
+            <!-- Formulário -->
+            <div class="form-card">
+              <h3 id="receitaFormTitle">Nova receita</h3>
+
+              <form id="receitaForm" novalidate>
+                <input type="hidden" id="receitaId" value="">
+
+                <label class="field">
+                  <span>Descrição</span>
+                  <input type="text" id="receitaDescricao" placeholder="Ex.: Salário de agosto">
+                </label>
+
+                <div class="field-row">
+                  <label class="field">
+                    <span>Valor (R$)</span>
+                    <input type="number" id="receitaValor" min="0.01" step="0.01" placeholder="0,00">
+                  </label>
+
+                  <label class="field">
+                    <span>Data</span>
+                    <input type="date" id="receitaData">
+                  </label>
+                </div>
+
+                <label class="field">
+                  <span>Categoria</span>
+                  <select id="receitaCategoria">
+                    <option value="Salário">Salário</option>
+                    <option value="Comissão">Comissão</option>
+                    <option value="Trabalho extra">Trabalho extra</option>
+                    <option value="Venda">Venda</option>
+                    <option value="Outros">Outros</option>
+                  </select>
+                </label>
+
+                <p class="form-message" id="receitaMessage" role="alert"></p>
+
+                <div class="form-actions">
+                  <button type="submit" class="primary-btn" id="receitaSubmitBtn">Adicionar receita</button>
+                  <button type="button" class="secondary-btn is-hidden" id="receitaCancelarBtn">Cancelar edição</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Lista -->
+            <div class="list-card">
+              <div class="list-card-head">
+                <h3>Lançamentos</h3>
+                <span class="list-count" id="receitasCount">0 registros</span>
+              </div>
+
+              <div class="filtros-bar">
+                <input type="search" id="receitaFiltroBusca" class="filtro-busca" placeholder="Buscar por descrição...">
+
+                <select id="receitaFiltroMes" class="filtro-select">
+                  <option value="">Todos os meses</option>
+                  <option value="01">Janeiro</option>
+                  <option value="02">Fevereiro</option>
+                  <option value="03">Março</option>
+                  <option value="04">Abril</option>
+                  <option value="05">Maio</option>
+                  <option value="06">Junho</option>
+                  <option value="07">Julho</option>
+                  <option value="08">Agosto</option>
+                  <option value="09">Setembro</option>
+                  <option value="10">Outubro</option>
+                  <option value="11">Novembro</option>
+                  <option value="12">Dezembro</option>
+                </select>
+
+                <select id="receitaFiltroAno" class="filtro-select">
+                  <option value="">Todos os anos</option>
+                </select>
+
+                <select id="receitaFiltroCategoria" class="filtro-select">
+                  <option value="">Todas as categorias</option>
+                  <option value="Salário">Salário</option>
+                  <option value="Comissão">Comissão</option>
+                  <option value="Trabalho extra">Trabalho extra</option>
+                  <option value="Venda">Venda</option>
+                  <option value="Outros">Outros</option>
+                </select>
+
+                <button type="button" class="filtro-limpar" id="receitaFiltroLimpar">Limpar filtros</button>
+              </div>
+
+              <div class="empty-state" id="receitasEmpty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+                <p id="receitasEmptyTexto">Nenhuma receita cadastrada ainda.</p>
+                <span>Use o formulário ao lado para adicionar a primeira.</span>
+              </div>
+
+              <ul class="record-list" id="receitasList"></ul>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ===================== VIEW: DESPESAS ===================== -->
+        <section class="view is-hidden" id="view-despesas">
+
+          <div class="record-layout">
+
+            <!-- Formulário -->
+            <div class="form-card">
+              <h3 id="despesaFormTitle">Nova despesa</h3>
+
+              <form id="despesaForm" novalidate>
+                <input type="hidden" id="despesaId" value="">
+
+                <label class="field">
+                  <span>Descrição</span>
+                  <input type="text" id="despesaDescricao" placeholder="Ex.: Conta de energia">
+                </label>
+
+                <div class="field-row">
+                  <label class="field">
+                    <span>Valor (R$)</span>
+                    <input type="number" id="despesaValor" min="0.01" step="0.01" placeholder="0,00">
+                  </label>
+
+                  <label class="field">
+                    <span>Data</span>
+                    <input type="date" id="despesaData">
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label class="field">
+                    <span>Categoria</span>
+                    <select id="despesaCategoria">
+                      <option value="Alimentação">Alimentação</option>
+                      <option value="Transporte">Transporte</option>
+                      <option value="Moradia">Moradia</option>
+                      <option value="Lazer">Lazer</option>
+                      <option value="Compras">Compras</option>
+                      <option value="Assinaturas">Assinaturas</option>
+                      <option value="Educação">Educação</option>
+                      <option value="Saúde">Saúde</option>
+                      <option value="Veículo">Veículo</option>
+                      <option value="Cartão">Cartão</option>
+                      <option value="Outros">Outros</option>
+                    </select>
+                  </label>
+
+                  <label class="field">
+                    <span>Forma de pagamento</span>
+                    <select id="despesaFormaPagamento">
+                      <option value="Dinheiro">Dinheiro</option>
+                      <option value="PIX">PIX</option>
+                      <option value="Débito">Débito</option>
+                      <option value="Crédito">Crédito</option>
+                      <option value="Boleto">Boleto</option>
+                      <option value="Outros">Outros</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label class="field">
+                    <span>Status</span>
+                    <select id="despesaStatus">
+                      <option value="Pago">Pago</option>
+                      <option value="Pendente">Pendente</option>
+                    </select>
+                  </label>
+
+                  <label class="field">
+                    <span>Despesa fixa</span>
+                    <select id="despesaFixa">
+                      <option value="nao">Não</option>
+                      <option value="sim">Sim</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label class="field">
+                    <span>Total de parcelas</span>
+                    <input type="number" id="despesaTotalParcelas" min="1" step="1" value="1">
+                  </label>
+
+                  <label class="field">
+                    <span>Parcelas restantes</span>
+                    <input type="number" id="despesaParcelasRestantes" min="1" step="1" value="1">
+                  </label>
+                </div>
+
+                <p class="form-message" id="despesaMessage" role="alert"></p>
+
+                <div class="form-actions">
+                  <button type="submit" class="primary-btn" id="despesaSubmitBtn">Adicionar despesa</button>
+                  <button type="button" class="secondary-btn is-hidden" id="despesaCancelarBtn">Cancelar edição</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Lista -->
+            <div class="list-card">
+              <div class="list-card-head">
+                <h3>Lançamentos</h3>
+                <span class="list-count" id="despesasCount">0 registros</span>
+              </div>
+
+              <div class="filtros-bar">
+                <input type="search" id="despesaFiltroBusca" class="filtro-busca" placeholder="Buscar por descrição...">
+
+                <select id="despesaFiltroMes" class="filtro-select">
+                  <option value="">Todos os meses</option>
+                  <option value="01">Janeiro</option>
+                  <option value="02">Fevereiro</option>
+                  <option value="03">Março</option>
+                  <option value="04">Abril</option>
+                  <option value="05">Maio</option>
+                  <option value="06">Junho</option>
+                  <option value="07">Julho</option>
+                  <option value="08">Agosto</option>
+                  <option value="09">Setembro</option>
+                  <option value="10">Outubro</option>
+                  <option value="11">Novembro</option>
+                  <option value="12">Dezembro</option>
+                </select>
+
+                <select id="despesaFiltroAno" class="filtro-select">
+                  <option value="">Todos os anos</option>
+                </select>
+
+                <select id="despesaFiltroCategoria" class="filtro-select">
+                  <option value="">Todas as categorias</option>
+                  <option value="Alimentação">Alimentação</option>
+                  <option value="Transporte">Transporte</option>
+                  <option value="Moradia">Moradia</option>
+                  <option value="Lazer">Lazer</option>
+                  <option value="Compras">Compras</option>
+                  <option value="Assinaturas">Assinaturas</option>
+                  <option value="Educação">Educação</option>
+                  <option value="Saúde">Saúde</option>
+                  <option value="Veículo">Veículo</option>
+                  <option value="Cartão">Cartão</option>
+                  <option value="Outros">Outros</option>
+                </select>
+
+                <select id="despesaFiltroStatus" class="filtro-select">
+                  <option value="">Todos os status</option>
+                  <option value="Pago">Pago</option>
+                  <option value="Pendente">Pendente</option>
+                </select>
+
+                <button type="button" class="filtro-limpar" id="despesaFiltroLimpar">Limpar filtros</button>
+              </div>
+
+              <div class="empty-state" id="despesasEmpty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 5v14"/><path d="m5 12 7 7 7-7"/></svg>
+                <p id="despesasEmptyTexto">Nenhuma despesa cadastrada ainda.</p>
+                <span>Use o formulário ao lado para adicionar a primeira.</span>
+              </div>
+
+              <ul class="record-list" id="despesasList"></ul>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ===================== VIEW: PARCELAS ===================== -->
+        <section class="view is-hidden" id="view-parcelas">
+
+          <div class="summary-grid">
+            <div class="summary-card">
+              <span class="summary-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="10" height="4" rx="1"/></svg>
+              </span>
+              <div>
+                <span class="summary-label">Total de parcelas pendentes</span>
+                <span class="summary-value" id="resumoParcelasPendentes">0</span>
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <span class="summary-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v10"/><path d="M9 10a2 2 0 0 1 2-2h1.5a2 2 0 0 1 0 4H11a2 2 0 0 0 0 4h1.5a2 2 0 0 0 2-2"/></svg>
+              </span>
+              <div>
+                <span class="summary-label">Valor mensal das parcelas cadastradas</span>
+                <span class="summary-value" id="resumoParcelasValorMensal">R$ 0,00</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="page-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>
+            <span>O valor da parcela de cada compra em andamento já é somado às suas despesas (Painel, saldo e Relatórios). Ao quitar, ele deixa de pesar.</span>
+          </p>
+
+          <div class="record-layout">
+
+            <!-- Formulário -->
+            <div class="form-card">
+              <h3 id="parcelaFormTitle">Nova compra parcelada</h3>
+
+              <form id="parcelaForm" novalidate>
+                <input type="hidden" id="parcelaId" value="">
+
+                <label class="field">
+                  <span>Descrição</span>
+                  <input type="text" id="parcelaDescricao" placeholder="Ex.: Celular">
+                </label>
+
+                <label class="field">
+                  <span>Valor da parcela (R$)</span>
+                  <input type="number" id="parcelaValor" min="0.01" step="0.01" placeholder="0,00">
+                </label>
+
+                <div class="field-row">
+                  <label class="field">
+                    <span>Total de parcelas</span>
+                    <input type="number" id="parcelaTotalParcelas" min="1" step="1" value="12">
+                  </label>
+
+                  <label class="field">
+                    <span>Parcelas restantes</span>
+                    <input type="number" id="parcelaParcelasRestantes" min="0" step="1" value="12">
+                  </label>
+                </div>
+
+                <p class="form-message" id="parcelaMessage" role="alert"></p>
+
+                <div class="form-actions">
+                  <button type="submit" class="primary-btn" id="parcelaSubmitBtn">Adicionar parcela</button>
+                  <button type="button" class="secondary-btn is-hidden" id="parcelaCancelarBtn">Cancelar edição</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Lista -->
+            <div class="list-card">
+              <div class="list-card-head">
+                <h3>Compras parceladas</h3>
+                <span class="list-count" id="parcelasCount">0 registros</span>
+              </div>
+
+              <div class="empty-state" id="parcelasEmpty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="10" height="4" rx="1"/></svg>
+                <p>Nenhuma compra parcelada cadastrada ainda.</p>
+                <span>Use o formulário ao lado para adicionar a primeira.</span>
+              </div>
+
+              <ul class="record-list" id="parcelasList"></ul>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ===================== VIEW: CARTÕES ===================== -->
+        <section class="view is-hidden" id="view-cartoes">
+
+          <p class="page-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>
+            <span>As compras do cartão <strong>não entram nas Despesas</strong> automaticamente: elas formam a fatura. Quando pagar a fatura, registre o pagamento como despesa (categoria "Cartão") — assim a mesma compra nunca é contada duas vezes.</span>
+          </p>
+
+          <div class="record-layout">
+
+            <!-- Formulário do cartão -->
+            <div class="form-card">
+              <h3 id="cartaoFormTitle">Novo cartão</h3>
+
+              <form id="cartaoForm" novalidate>
+                <input type="hidden" id="cartaoId" value="">
+
+                <label class="field">
+                  <span>Nome do cartão</span>
+                  <input type="text" id="cartaoNome" placeholder="Ex.: Nubank Platinum">
+                </label>
+
+                <label class="field">
+                  <span>Instituição / banco</span>
+                  <input type="text" id="cartaoBanco" placeholder="Ex.: Nubank">
+                </label>
+
+                <label class="field">
+                  <span>Limite total (R$)</span>
+                  <input type="number" id="cartaoLimite" min="0.01" step="0.01" placeholder="0,00">
+                </label>
+
+                <div class="field-row">
+                  <label class="field">
+                    <span>Dia de fechamento</span>
+                    <input type="number" id="cartaoFechamento" min="1" max="31" step="1" placeholder="Ex.: 25">
+                  </label>
+
+                  <label class="field">
+                    <span>Dia de vencimento</span>
+                    <input type="number" id="cartaoVencimento" min="1" max="31" step="1" placeholder="Ex.: 5">
+                  </label>
+                </div>
+
+                <p class="form-message" id="cartaoMessage" role="alert"></p>
+
+                <div class="form-actions">
+                  <button type="submit" class="primary-btn" id="cartaoSubmitBtn">Adicionar cartão</button>
+                  <button type="button" class="secondary-btn is-hidden" id="cartaoCancelarBtn">Cancelar edição</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Lista de cartões -->
+            <div class="list-card">
+              <div class="list-card-head">
+                <h3>Meus cartões</h3>
+                <span class="list-count" id="cartoesCount">0 cartões</span>
+              </div>
+
+              <div class="empty-state" id="cartoesEmpty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+                <p>Nenhum cartão cadastrado ainda.</p>
+                <span>Use o formulário ao lado para adicionar o primeiro.</span>
+              </div>
+
+              <ul class="cartao-grid" id="cartoesList"></ul>
+            </div>
+
+          </div>
+
+          <!-- Faturas -->
+          <div class="list-card faturas-card is-hidden" id="faturasCard">
+            <div class="list-card-head">
+              <h3>Faturas</h3>
+              <label class="fatura-select">
+                <span>Cartão</span>
+                <select id="cartaoSelecionado" class="filtro-select"></select>
+              </label>
+            </div>
+
+            <div class="fatura-chips" id="faturaChips"></div>
+
+            <div class="fatura-resumo">
+              <div>
+                <span class="fatura-titulo" id="faturaTitulo">—</span>
+                <span class="record-tag record-tag-status" id="faturaStatus"></span>
+                <p class="fatura-datas" id="faturaDatas">—</p>
+              </div>
+              <strong class="fatura-total" id="faturaTotal">R$ 0,00</strong>
+            </div>
+
+            <div class="empty-state is-hidden" id="faturaEmpty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+              <p>Nenhuma compra nesta fatura.</p>
+            </div>
+            <ul class="record-list" id="faturaItens"></ul>
+          </div>
+
+          <!-- Compras no cartão -->
+          <div class="record-layout is-hidden" id="comprasLayout">
+
+            <div class="form-card">
+              <h3 id="compraFormTitle">Nova compra no cartão</h3>
+              <p class="compra-cartao" id="compraCartaoInfo">—</p>
+
+              <form id="compraForm" novalidate>
+                <input type="hidden" id="compraId" value="">
+
+                <label class="field">
+                  <span>Descrição</span>
+                  <input type="text" id="compraDescricao" placeholder="Ex.: Notebook">
+                </label>
+
+                <div class="field-row">
+                  <label class="field">
+                    <span>Valor total (R$)</span>
+                    <input type="number" id="compraValor" min="0.01" step="0.01" placeholder="0,00">
+                  </label>
+
+                  <label class="field">
+                    <span>Data da compra</span>
+                    <input type="date" id="compraData">
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label class="field">
+                    <span>Nº de parcelas</span>
+                    <input type="number" id="compraParcelas" min="1" max="48" step="1" value="1">
+                  </label>
+
+                  <label class="field">
+                    <span>Categoria</span>
+                    <select id="compraCategoria">
+                      <option value="Alimentação">Alimentação</option>
+                      <option value="Transporte">Transporte</option>
+                      <option value="Moradia">Moradia</option>
+                      <option value="Lazer">Lazer</option>
+                      <option value="Compras" selected>Compras</option>
+                      <option value="Assinaturas">Assinaturas</option>
+                      <option value="Educação">Educação</option>
+                      <option value="Saúde">Saúde</option>
+                      <option value="Veículo">Veículo</option>
+                      <option value="Cartão">Cartão</option>
+                      <option value="Outros">Outros</option>
+                    </select>
+                  </label>
+                </div>
+
+                <p class="form-message" id="compraMessage" role="alert"></p>
+
+                <div class="form-actions">
+                  <button type="submit" class="primary-btn" id="compraSubmitBtn">Adicionar compra</button>
+                  <button type="button" class="secondary-btn is-hidden" id="compraCancelarBtn">Cancelar edição</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="list-card">
+              <div class="list-card-head">
+                <h3>Compras do cartão</h3>
+                <span class="list-count" id="comprasCount">0 registros</span>
+              </div>
+
+              <div class="empty-state" id="comprasEmpty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+                <p>Nenhuma compra neste cartão ainda.</p>
+                <span>Use o formulário ao lado para lançar a primeira.</span>
+              </div>
+
+              <ul class="record-list" id="comprasList"></ul>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ===================== VIEW: RELATÓRIOS ===================== -->
+        <section class="view is-hidden" id="view-relatorios">
+
+          <div class="form-card periodo-card">
+            <h3>Período do relatório</h3>
+            <div class="field-row">
+              <label class="field">
+                <span>Mês</span>
+                <select id="relatorioMes">
+                  <option value="01">Janeiro</option>
+                  <option value="02">Fevereiro</option>
+                  <option value="03">Março</option>
+                  <option value="04">Abril</option>
+                  <option value="05">Maio</option>
+                  <option value="06">Junho</option>
+                  <option value="07">Julho</option>
+                  <option value="08">Agosto</option>
+                  <option value="09">Setembro</option>
+                  <option value="10">Outubro</option>
+                  <option value="11">Novembro</option>
+                  <option value="12">Dezembro</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span>Ano</span>
+                <select id="relatorioAno"></select>
+              </label>
+            </div>
+          </div>
+
+          <div class="summary-grid">
+            <div class="summary-card">
+              <span class="summary-icon icon-green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+              </span>
+              <div>
+                <span class="summary-label">Receitas do mês</span>
+                <span class="summary-value" id="relatorioReceitas">R$ 0,00</span>
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <span class="summary-icon icon-red">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 5v14"/><path d="m5 12 7 7 7-7"/></svg>
+              </span>
+              <div>
+                <span class="summary-label">Despesas do mês</span>
+                <span class="summary-value" id="relatorioDespesas">R$ 0,00</span>
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <span class="summary-icon icon-green" id="relatorioSaldoIcon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="14.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+              </span>
+              <div>
+                <span class="summary-label">Saldo do período</span>
+                <span class="summary-value" id="relatorioSaldo">R$ 0,00</span>
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <span class="summary-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="10" height="4" rx="1"/></svg>
+              </span>
+              <div>
+                <span class="summary-label">Parcelas pendentes</span>
+                <span class="summary-value" id="relatorioParcelasPendentes">0</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="charts-grid relatorio-charts">
+            <div class="chart-card">
+              <h3>Receitas x despesas do mês</h3>
+              <div class="chart-canvas-wrap">
+                <canvas id="graficoRelResumo"></canvas>
+                <div class="empty-state is-hidden" id="graficoRelResumoEmpty">
+                  <p>Sem lançamentos nesse período.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <h3>Gastos por categoria</h3>
+              <div class="chart-canvas-wrap">
+                <canvas id="graficoRelCategorias"></canvas>
+                <div class="empty-state is-hidden" id="graficoRelCategoriasEmpty">
+                  <p>Nenhuma despesa nesse período.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-card chart-card-wide">
+              <h3>Receitas e despesas mês a mês</h3>
+              <div class="chart-canvas-wrap">
+                <canvas id="graficoRelAnual"></canvas>
+                <div class="empty-state is-hidden" id="graficoRelAnualEmpty">
+                  <p>Nenhum lançamento nesse ano.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="relatorio-grid">
+            <div class="list-card">
+              <div class="list-card-head">
+                <h3>Detalhe por categoria</h3>
+              </div>
+              <div class="empty-state is-hidden" id="relatorioCategoriasEmpty">
+                <p>Nenhuma despesa nesse período.</p>
+              </div>
+              <ul class="resumo-lista" id="relatorioCategoriasList"></ul>
+            </div>
+
+            <div class="list-card">
+              <div class="list-card-head">
+                <h3>Maiores despesas</h3>
+              </div>
+              <div class="empty-state is-hidden" id="relatorioMaioresEmpty">
+                <p>Nenhuma despesa nesse período.</p>
+              </div>
+              <ul class="record-list" id="relatorioMaioresList"></ul>
+            </div>
+          </div>
+
+        </section>
+
+        <footer class="page-footer">
+          <p>Cofre · dados de cada conta armazenados separadamente, apenas neste navegador (localStorage)</p>
+        </footer>
+
+      </main>
+    </div>
+
+    <!-- Barra de navegação inferior (somente no celular) -->
+    <nav class="tabbar" aria-label="Navegação rápida">
+      <span class="tab-indicator" id="tabIndicator" aria-hidden="true"></span>
+      <a href="#" class="tab-item is-active" data-nav="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="8" height="10" rx="2"/><rect x="13" y="3" width="8" height="6" rx="2"/><rect x="13" y="11" width="8" height="10" rx="2"/><rect x="3" y="15" width="8" height="6" rx="2"/></svg>
+        <span>Painel</span>
+      </a>
+      <a href="#" class="tab-item" data-nav="receitas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+        <span>Receitas</span>
+      </a>
+      <a href="#" class="tab-item" data-nav="despesas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 5v14"/><path d="m5 12 7 7 7-7"/></svg>
+        <span>Despesas</span>
+      </a>
+      <a href="#" class="tab-item" data-nav="parcelas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="10" height="4" rx="1"/></svg>
+        <span>Parcelas</span>
+      </a>
+      <a href="#" class="tab-item" data-nav="cartoes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+        <span>Cartões</span>
+      </a>
+      <a href="#" class="tab-item" data-nav="relatorios">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19V9"/><path d="M11 19V4"/><path d="M18 19v-7"/></svg>
+        <span>Relatórios</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- Notificações (toasts) -->
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Modal de confirmação -->
+  <div class="modal-backdrop is-hidden" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+    <div class="modal-card">
+      <span class="modal-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+      </span>
+      <h3 id="confirmModalTitle">Confirmar exclusão</h3>
+      <p id="confirmModalText"></p>
+      <div class="modal-actions">
+        <button type="button" class="secondary-btn" id="confirmModalCancel">Cancelar</button>
+        <button type="button" class="danger-btn" id="confirmModalOk">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
