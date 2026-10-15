@@ -9,6 +9,42 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="mercado.css">
+<!-- Chart.js: tenta vários servidores em ordem até um funcionar (todos os endereços abaixo existem).
+     Para funcionar 100% offline, salve o arquivo chart.umd.js em  vendor/chart.umd.js  (veja o README). -->
+<script>
+(function () {
+  var fontes = [
+    "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js",
+    "https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js",
+    "https://unpkg.com/chart.js@4.5.1/dist/chart.umd.js",
+    "vendor/chart.umd.js"
+  ];
+  window.__chartPronto = new Promise(function (resolve) {
+    function tentar(i) {
+      if (window.Chart) { resolve(true); return; }
+      if (i >= fontes.length) { resolve(false); return; }
+      var s = document.createElement("script");
+      var terminou = false;
+      var limite = setTimeout(function () { seguir(false); }, 8000); // servidor que não responde: passa para o próximo
+      function seguir(ok) {
+        if (terminou) return;
+        terminou = true;
+        clearTimeout(limite);
+        if (ok && window.Chart) { resolve(true); return; }
+        s.remove();
+        tentar(i + 1);
+      }
+      s.onload = function () { seguir(true); };
+      s.onerror = function () { seguir(false); };
+      s.src = fontes[i];
+      document.head.appendChild(s);
+    }
+    tentar(0);
+  });
+})();
+</script>
 </head>
 <body>
 
@@ -140,6 +176,10 @@
         <a class="nav-item" href="#" data-nav="relatorios">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19V9"/><path d="M11 19V4"/><path d="M18 19v-7"/></svg>
           <span>Relatórios</span>
+        </a>
+        <a class="nav-item" href="#" data-nav="mercado">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
+          <span>Mercado Financeiro</span>
         </a>
 
         <span class="nav-label">Conta</span>
@@ -348,6 +388,39 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
               <p>Nenhum cartão cadastrado ainda.</p>
               <span>Cadastre seus cartões para acompanhar limites e faturas. <a href="#" class="link-action" data-goto="cartoes">Ir para Cartões</a></span>
+            </div>
+          </section>
+
+          <!-- Mercado financeiro (resumo; usa as mesmas fontes e o mesmo cache da página completa) -->
+          <section class="mercado-resumo-section" aria-labelledby="dmTitulo">
+            <div class="section-heading mk-resumo-head">
+              <div>
+                <h2 id="dmTitulo">Mercado financeiro</h2>
+                <p>Cotações de fontes públicas, com data e hora informadas por elas.</p>
+              </div>
+              <a href="#" class="secondary-btn mk-ver-tudo" data-goto="mercado">Ver mercado completo</a>
+            </div>
+            <div class="mk-mini-grid" id="dmGrid">
+              <article class="mk-mini mk-card" id="dm-usd" aria-live="polite">
+                <div class="mk-mini-topo"><span class="mk-mini-nome">Dólar</span><span class="mk-var" id="dm-usd-var" hidden></span></div>
+                <strong class="mk-mini-preco" id="dm-usd-preco">—</strong>
+                <span class="mk-mini-hora" id="dm-usd-hora">Carregando…</span>
+              </article>
+              <article class="mk-mini mk-card" id="dm-eur" aria-live="polite">
+                <div class="mk-mini-topo"><span class="mk-mini-nome">Euro</span><span class="mk-var" id="dm-eur-var" hidden></span></div>
+                <strong class="mk-mini-preco" id="dm-eur-preco">—</strong>
+                <span class="mk-mini-hora" id="dm-eur-hora">Carregando…</span>
+              </article>
+              <article class="mk-mini mk-card" id="dm-btc" aria-live="polite">
+                <div class="mk-mini-topo"><span class="mk-mini-nome">Bitcoin</span><span class="mk-var" id="dm-btc-var" hidden></span></div>
+                <strong class="mk-mini-preco" id="dm-btc-preco">—</strong>
+                <span class="mk-mini-hora" id="dm-btc-hora">Carregando…</span>
+              </article>
+              <article class="mk-mini mk-card" id="dm-ibov" aria-live="polite">
+                <div class="mk-mini-topo"><span class="mk-mini-nome">Ibovespa</span><span class="mk-var" id="dm-ibov-var" hidden></span></div>
+                <strong class="mk-mini-preco" id="dm-ibov-preco">—</strong>
+                <span class="mk-mini-hora" id="dm-ibov-hora">Carregando…</span>
+              </article>
             </div>
           </section>
 
@@ -953,6 +1026,269 @@
 
         </section>
 
+        <!-- ===================== VIEW: MERCADO FINANCEIRO ===================== -->
+        <section class="view is-hidden" id="view-mercado">
+
+          <div class="mk-topo mk-card">
+            <div>
+              <strong>Dados de mercado de fontes públicas</strong>
+              <p>Cotações com cache e atualização moderada. Seus dados pessoais nunca são enviados a essas fontes.</p>
+            </div>
+            <button type="button" class="secondary-btn mk-refresh" data-mk-refresh="todos" id="mkAtualizarTudo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg><span>Atualizar tudo</span></button>
+          </div>
+
+          <!-- A. MOEDAS E CONVERSOR -->
+          <section class="mk-secao" aria-labelledby="mkTituloMoedas">
+            <div class="mk-secao-head">
+              <h2 id="mkTituloMoedas">Moedas e conversor</h2>
+              <span class="mk-status" id="mkStatusCambio" aria-live="polite"></span>
+              <button type="button" class="secondary-btn mk-refresh" data-mk-refresh="cambio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg><span>Atualizar</span></button>
+            </div>
+            <div class="mk-aviso is-hidden" id="mkAvisoCambio" role="status"></div>
+            <div class="mk-grid-2">
+            <article class="mk-quote mk-card" id="mk-usd" aria-live="polite">
+              <header class="mk-quote-head">
+                <span class="mk-quote-icon" aria-hidden="true">US$</span>
+                <div class="mk-quote-titulo"><h3>Dólar americano</h3><span class="mk-par">USD/BRL</span></div>
+                <span class="mk-var" id="mk-usd-var" hidden></span>
+              </header>
+              <strong class="mk-preco" id="mk-usd-preco">—</strong>
+              <p class="mk-meta" id="mk-usd-hora">Carregando…</p>
+              <p class="mk-estado" id="mk-usd-estado" hidden></p>
+            </article>
+            <article class="mk-quote mk-card" id="mk-eur" aria-live="polite">
+              <header class="mk-quote-head">
+                <span class="mk-quote-icon" aria-hidden="true">€</span>
+                <div class="mk-quote-titulo"><h3>Euro</h3><span class="mk-par">EUR/BRL</span></div>
+                <span class="mk-var" id="mk-eur-var" hidden></span>
+              </header>
+              <strong class="mk-preco" id="mk-eur-preco">—</strong>
+              <p class="mk-meta" id="mk-eur-hora">Carregando…</p>
+              <p class="mk-estado" id="mk-eur-estado" hidden></p>
+            </article>
+            </div>
+
+            <div class="mk-duas-colunas">
+        <div class="mk-card mk-grafico-card">
+          <div class="mk-grafico-head">
+            <h3 id="mkGraficoCambioTitulo">Histórico de 30 dias</h3>
+            <div class="mk-chips" id="mkChipsCambio" role="group" aria-label="Escolher ativo do gráfico"></div>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="mkGraficoCambio" aria-label="Gráfico de histórico de 30 dias"></canvas>
+            <div class="mk-chart-msg is-hidden" id="mkGraficoCambioMsg" role="status"></div>
+          </div>
+          <p class="mk-nota" id="mkGraficoCambioNota" hidden></p>
+        </div>
+              <div class="mk-card mk-conversor">
+                <h3>Conversor de moedas</h3>
+                <label class="field">
+                  <span>Valor</span>
+                  <input type="text" id="mkConvValor" inputmode="decimal" autocomplete="off" value="100" aria-describedby="mkConvErro">
+                </label>
+                <p class="form-message is-error" id="mkConvErro" role="alert" hidden></p>
+                <div class="mk-conv-linha">
+                  <label class="field">
+                    <span>De</span>
+                    <select id="mkConvDe"><option value="USD" selected>USD · Dólar</option><option value="EUR">EUR · Euro</option><option value="BRL">BRL · Real</option></select>
+                  </label>
+                  <button type="button" class="mk-inverter" id="mkConvInverter" aria-label="Inverter moedas de origem e destino" title="Inverter moedas">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4L3 8l4 4"/><path d="M3 8h14"/><path d="M17 20l4-4-4-4"/><path d="M21 16H7"/></svg>
+                  </button>
+                  <label class="field">
+                    <span>Para</span>
+                    <select id="mkConvPara"><option value="BRL" selected>BRL · Real</option><option value="USD">USD · Dólar</option><option value="EUR">EUR · Euro</option></select>
+                  </label>
+                </div>
+                <div class="mk-conv-saida" aria-live="polite">
+                  <span class="mk-conv-rotulo">Resultado</span>
+                  <strong id="mkConvResultado">—</strong>
+                  <p id="mkConvDetalhe" class="mk-meta"></p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- B. BOLSA -->
+          <section class="mk-secao" aria-labelledby="mkTituloBolsa">
+            <div class="mk-secao-head">
+              <h2 id="mkTituloBolsa">Bolsa brasileira</h2>
+              <span class="mk-status" id="mkStatusBolsa" aria-live="polite"></span>
+              <button type="button" class="secondary-btn mk-refresh" data-mk-refresh="bolsa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg><span>Atualizar</span></button>
+            </div>
+            <div class="mk-aviso is-hidden" id="mkAvisoBolsa" role="status"></div>
+            <div class="mk-aviso mk-aviso-info" id="mkNotaIbov">
+              <span class="mk-aviso-texto"><strong>Ibovespa requer configuração.</strong> A brapi só libera sem chave PETR4, VALE3, ITUB4 e MGLU3; o índice exige chave, e chaves não podem ficar no navegador. Configure o proxy opcional (veja o README) para ativá-lo.</span>
+            </div>
+            <div class="mk-bolsa-grade">
+            <article class="mk-quote mk-card" id="mk-ibov" aria-live="polite">
+              <header class="mk-quote-head">
+                <span class="mk-quote-icon" aria-hidden="true">IBOV</span>
+                <div class="mk-quote-titulo"><h3>Ibovespa</h3><span class="mk-par">^BVSP</span></div>
+                <span class="mk-var" id="mk-ibov-var" hidden></span>
+              </header>
+              <strong class="mk-preco" id="mk-ibov-preco">—</strong>
+              <p class="mk-meta" id="mk-ibov-hora">Carregando…</p>
+              <p class="mk-estado" id="mk-ibov-estado" hidden></p>
+            </article>
+              <div class="mk-card mk-acoes-card">
+                <h3>Ações populares</h3>
+                <ul class="mk-acoes" id="mkAcoesLista"></ul>
+                <p class="mk-vazio is-hidden" id="mkAcoesVazio">Sem cotações de ações no momento. Use “Tentar novamente”.</p>
+                <p class="mk-nota">Plano gratuito da brapi: dados com atraso de cerca de 30 minutos. Clique em um ticker para ver o histórico.</p>
+              </div>
+            </div>
+            
+        <div class="mk-card mk-grafico-card">
+          <div class="mk-grafico-head">
+            <h3 id="mkGraficoBolsaTitulo">Histórico de 30 dias</h3>
+            <div class="mk-chips" id="mkChipsBolsa" role="group" aria-label="Escolher ativo do gráfico"></div>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="mkGraficoBolsa" aria-label="Gráfico de histórico de 30 dias"></canvas>
+            <div class="mk-chart-msg is-hidden" id="mkGraficoBolsaMsg" role="status"></div>
+          </div>
+          <p class="mk-nota" id="mkGraficoBolsaNota" hidden></p>
+        </div>
+          </section>
+
+          <!-- C. CRIPTOMOEDAS -->
+          <section class="mk-secao" aria-labelledby="mkTituloCripto">
+            <div class="mk-secao-head">
+              <h2 id="mkTituloCripto">Criptomoedas</h2>
+              <span class="mk-status" id="mkStatusCripto" aria-live="polite"></span>
+              <button type="button" class="secondary-btn mk-refresh" data-mk-refresh="cripto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg><span>Atualizar</span></button>
+            </div>
+            <div class="mk-aviso is-hidden" id="mkAvisoCripto" role="status"></div>
+            <div class="mk-grid-2">
+            <article class="mk-quote mk-card" id="mk-btc" aria-live="polite">
+              <header class="mk-quote-head">
+                <span class="mk-quote-icon" aria-hidden="true">₿</span>
+                <div class="mk-quote-titulo"><h3>Bitcoin</h3><span class="mk-par">BTC/BRL</span></div>
+                <span class="mk-var" id="mk-btc-var" hidden></span>
+              </header>
+              <strong class="mk-preco" id="mk-btc-preco">—</strong>
+              <p class="mk-meta" id="mk-btc-hora">Carregando…</p>
+              <p class="mk-estado" id="mk-btc-estado" hidden></p>
+            </article>
+            <article class="mk-quote mk-card" id="mk-eth" aria-live="polite">
+              <header class="mk-quote-head">
+                <span class="mk-quote-icon" aria-hidden="true">Ξ</span>
+                <div class="mk-quote-titulo"><h3>Ethereum</h3><span class="mk-par">ETH/BRL</span></div>
+                <span class="mk-var" id="mk-eth-var" hidden></span>
+              </header>
+              <strong class="mk-preco" id="mk-eth-preco">—</strong>
+              <p class="mk-meta" id="mk-eth-hora">Carregando…</p>
+              <p class="mk-estado" id="mk-eth-estado" hidden></p>
+            </article>
+            </div>
+            
+        <div class="mk-card mk-grafico-card">
+          <div class="mk-grafico-head">
+            <h3 id="mkGraficoCriptoTitulo">Histórico de 30 dias</h3>
+            <div class="mk-chips" id="mkChipsCripto" role="group" aria-label="Escolher ativo do gráfico"></div>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="mkGraficoCripto" aria-label="Gráfico de histórico de 30 dias"></canvas>
+            <div class="mk-chart-msg is-hidden" id="mkGraficoCriptoMsg" role="status"></div>
+          </div>
+          <p class="mk-nota" id="mkGraficoCriptoNota" hidden></p>
+        </div>
+            <p class="mk-nota">Variação em 24 horas conforme a fonte (CoinGecko; AwesomeAPI como reserva). Fontes públicas têm limite de consultas — por isso o cache.</p>
+          </section>
+
+          <!-- D. SIMULADOR -->
+          <section class="mk-secao" aria-labelledby="mkTituloSim">
+            <div class="mk-secao-head">
+              <h2 id="mkTituloSim">Simulador de rendimentos</h2>
+            </div>
+
+            <form class="mk-card mk-sim-form" id="simForm" novalidate>
+              <div class="mk-sim-campos">
+                <label class="field"><span>Valor inicial (R$)</span><input type="text" id="simInicial" inputmode="decimal" autocomplete="off" value="1000"></label>
+                <label class="field"><span>Aporte mensal (R$)</span><input type="text" id="simAporte" inputmode="decimal" autocomplete="off" value="200"></label>
+                <div class="field mk-prazo">
+                  <span id="simPrazoRotulo">Prazo</span>
+                  <div class="mk-prazo-linha">
+                    <input type="text" id="simPrazo" inputmode="numeric" autocomplete="off" value="5" aria-labelledby="simPrazoRotulo">
+                    <select id="simUnidade" aria-label="Unidade do prazo"><option value="anos" selected>anos</option><option value="meses">meses</option></select>
+                  </div>
+                </div>
+              </div>
+              <fieldset class="mk-taxas">
+                <legend>Taxa de rendimento mensal (% ao mês) por cenário — editável</legend>
+                <label class="field"><span>Conservador</span><input type="text" id="simTaxaConservador" inputmode="decimal" autocomplete="off" value="0,50"></label>
+                <label class="field"><span>Intermediário</span><input type="text" id="simTaxaIntermediario" inputmode="decimal" autocomplete="off" value="0,80"></label>
+                <label class="field"><span>Otimista</span><input type="text" id="simTaxaOtimista" inputmode="decimal" autocomplete="off" value="1,20"></label>
+              </fieldset>
+              <p class="form-message" id="simMensagem" role="alert"></p>
+              <button type="submit" class="primary-btn mk-sim-botao">Simular</button>
+            </form>
+
+            <div id="simResultados">
+              <p class="mk-prazo-texto" id="simPrazoTexto"></p>
+              <div class="mk-cenarios">
+          <article class="mk-cenario mk-card" id="sim-conservador">
+            <header><h3>Conservador</h3><span class="mk-cenario-taxa" id="sim-conservador-taxa">—</span></header>
+            <dl>
+              <div><dt>Total investido</dt><dd id="sim-conservador-investido">—</dd></div>
+              <div><dt>Rendimentos estimados</dt><dd id="sim-conservador-rendimentos">—</dd></div>
+              <div class="mk-cenario-final"><dt>Patrimônio final estimado</dt><dd id="sim-conservador-final">—</dd></div>
+            </dl>
+          </article>
+          <article class="mk-cenario mk-card" id="sim-intermediario">
+            <header><h3>Intermediário</h3><span class="mk-cenario-taxa" id="sim-intermediario-taxa">—</span></header>
+            <dl>
+              <div><dt>Total investido</dt><dd id="sim-intermediario-investido">—</dd></div>
+              <div><dt>Rendimentos estimados</dt><dd id="sim-intermediario-rendimentos">—</dd></div>
+              <div class="mk-cenario-final"><dt>Patrimônio final estimado</dt><dd id="sim-intermediario-final">—</dd></div>
+            </dl>
+          </article>
+          <article class="mk-cenario mk-card" id="sim-otimista">
+            <header><h3>Otimista</h3><span class="mk-cenario-taxa" id="sim-otimista-taxa">—</span></header>
+            <dl>
+              <div><dt>Total investido</dt><dd id="sim-otimista-investido">—</dd></div>
+              <div><dt>Rendimentos estimados</dt><dd id="sim-otimista-rendimentos">—</dd></div>
+              <div class="mk-cenario-final"><dt>Patrimônio final estimado</dt><dd id="sim-otimista-final">—</dd></div>
+            </dl>
+          </article>
+              </div>
+
+              <div class="mk-card mk-grafico-card">
+                <div class="mk-grafico-head"><h3>Evolução do patrimônio</h3></div>
+                <div class="chart-canvas-wrap">
+                  <canvas id="simGrafico" aria-label="Gráfico da evolução do patrimônio nos três cenários"></canvas>
+                </div>
+              </div>
+
+              <div class="mk-card mk-tabela-card">
+                <div class="mk-grafico-head">
+                  <h3>Evolução detalhada</h3>
+                  <div class="mk-chips" role="group" aria-label="Visão da tabela">
+                    <button type="button" class="mk-chip is-active" data-mk-visao="anual" aria-pressed="true">Anual</button>
+                    <button type="button" class="mk-chip" data-mk-visao="mensal" aria-pressed="false">Mensal</button>
+                  </div>
+                </div>
+                <div class="mk-tabela-wrap" tabindex="0" role="region" aria-label="Tabela de evolução (role para ver mais)">
+                  <table class="mk-tabela">
+                    <caption class="sr-only">Total investido e patrimônio estimado em cada cenário, por período</caption>
+                    <thead><tr><th scope="col">Período</th><th scope="col">Total investido</th><th scope="col">Conservador</th><th scope="col">Intermediário</th><th scope="col">Otimista</th></tr></thead>
+                    <tbody id="simTabelaCorpo"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <p class="mk-aviso-legal">
+                <strong>Simulação hipotética — não é garantia de rendimento.</strong>
+                Resultados <strong>brutos e nominais</strong>: não consideram impostos, taxas nem inflação.
+                Aportes no final de cada mês; saldo = saldo anterior × (1 + taxa mensal) + aporte.
+                Rendimentos passados e taxas supostas não garantem resultados futuros.
+              </p>
+            </div>
+          </section>
+
+        </section>
+
         <!-- ===================== VIEW: RELATÓRIOS ===================== -->
         <section class="view is-hidden" id="view-relatorios">
 
@@ -1092,29 +1428,33 @@
     <!-- Barra de navegação inferior (somente no celular) -->
     <nav class="tabbar" aria-label="Navegação rápida">
       <span class="tab-indicator" id="tabIndicator" aria-hidden="true"></span>
-      <a href="#" class="tab-item is-active" data-nav="dashboard">
+      <a href="#" class="tab-item is-active" aria-label="Painel" data-nav="dashboard">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="8" height="10" rx="2"/><rect x="13" y="3" width="8" height="6" rx="2"/><rect x="13" y="11" width="8" height="10" rx="2"/><rect x="3" y="15" width="8" height="6" rx="2"/></svg>
         <span>Painel</span>
       </a>
-      <a href="#" class="tab-item" data-nav="receitas">
+      <a href="#" class="tab-item" aria-label="Receitas" data-nav="receitas">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
         <span>Receitas</span>
       </a>
-      <a href="#" class="tab-item" data-nav="despesas">
+      <a href="#" class="tab-item" aria-label="Despesas" data-nav="despesas">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 5v14"/><path d="m5 12 7 7 7-7"/></svg>
         <span>Despesas</span>
       </a>
-      <a href="#" class="tab-item" data-nav="parcelas">
+      <a href="#" class="tab-item" aria-label="Parcelas" data-nav="parcelas">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="10" height="4" rx="1"/></svg>
         <span>Parcelas</span>
       </a>
-      <a href="#" class="tab-item" data-nav="cartoes">
+      <a href="#" class="tab-item" aria-label="Cartões" data-nav="cartoes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
         <span>Cartões</span>
       </a>
-      <a href="#" class="tab-item" data-nav="relatorios">
+      <a href="#" class="tab-item" aria-label="Relatórios" data-nav="relatorios">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19V9"/><path d="M11 19V4"/><path d="M18 19v-7"/></svg>
         <span>Relatórios</span>
+      </a>
+      <a href="#" class="tab-item" aria-label="Mercado" data-nav="mercado">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
+        <span>Mercado</span>
       </a>
     </nav>
   </div>
@@ -1137,7 +1477,7 @@
     </div>
   </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="mercado.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

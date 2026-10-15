@@ -31,8 +31,7 @@ O que já existe:
     suas receitas." ou um alerta quando as despesas já comprometem 80%+ da
     renda) e uma lista com total recebido, total gasto, saldo, % da renda
     comprometida, maior categoria de gasto e quantidade de despesas.
-  - **3 gráficos** (via [Chart.js](https://www.chartjs.org/), carregado por
-    CDN): Receitas x despesas (barras), Despesas por categoria (rosca) e
+  - **3 gráficos** (via [Chart.js](https://www.chartjs.org/)): Receitas x despesas (barras), Despesas por categoria (rosca) e
     Evolução do saldo acumulado ao longo das datas lançadas (linha). Todos
     são redesenhados automaticamente sempre que o Dashboard é aberto, já
     refletindo receitas, despesas ou parcelas adicionadas, editadas ou
@@ -156,6 +155,64 @@ secundário, para manter o contraste legível.
 > O efeito de fade + zoom foi aplicado ao modal de confirmação; transformar os formulários em modais
 > seria uma mudança de layout à parte.
 
+## Gráficos (Chart.js) e funcionamento offline
+
+Os gráficos usam o [Chart.js](https://www.chartjs.org/) 4.x. O `index.html` tenta carregar a
+biblioteca de vários servidores, em ordem, até um funcionar: cdnjs (4.5.1) → jsDelivr (4.5.1) → cdnjs
+(4.4.1) → unpkg (4.5.1) → arquivo local `vendor/chart.umd.js`. Enquanto baixa, os gráficos mostram um
+"carregando" e são desenhados sozinhos assim que a biblioteca chega. Se nenhum servidor responder, cada
+gráfico mostra um aviso, e o resto do sistema continua funcionando normalmente.
+
+**Para usar 100% offline** (ou se sua rede bloquear CDNs): baixe
+`https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.js`, salve em
+`controle-financeiro/vendor/chart.umd.js` e pronto — o sistema usa esse arquivo como último recurso.
+
+> Histórico: a versão anterior apontava para o Chart.js **4.4.4 do cdnjs, que não existe** (o cdnjs
+> publica 4.4.1 e 4.5.0+), por isso os gráficos não apareciam. Isso foi corrigido.
+
+## Mercado Financeiro
+
+Nova página no menu (e resumo no Dashboard) com moedas e conversor, bolsa, criptomoedas e simulador de
+rendimentos. Código em `mercado.js` e `mercado.css`; usa os componentes do Cofre (gráficos, avisos,
+formatação, animações). **Nenhum dado pessoal (receitas, despesas, usuário) é enviado às fontes** —
+são consultas GET públicas, sem cookies.
+
+| Módulo | Fonte (endpoint) | Chave? | Observações |
+|---|---|---|---|
+| Dólar e Euro | AwesomeAPI `economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL` e `json/daily/PAR/30` | não | `bid` = cotação; mostra `pctChange` e o `timestamp` da fonte |
+| Criptomoedas | CoinGecko `api.coingecko.com/api/v3/simple/price` e `coins/{id}/market_chart` (reserva: AwesomeAPI BTC/ETH-BRL) | não usada | sem chave a CoinGecko limita por IP e pode bloquear por CORS; por isso há reserva |
+| Ações | brapi `brapi.dev/api/v2/stocks/quote` e `historical` | não usada | sem chave só PETR4, VALE3, ITUB4 e MGLU3; 1 ticker por chamada; atraso de ~30 min |
+| Ibovespa (`^BVSP`) | brapi via **seu proxy** | **sim (no proxy)** | exige chave; chave não pode ficar no navegador |
+
+**Cache e atualização:** cotações ficam no `localStorage` (`cofre:mercado:v1`, compartilhado, sem dados pessoais).
+Validade: câmbio 2 min, cripto 3 min, bolsa 15 min, históricos 30 min. A atualização automática só roda com
+a aba visível e apenas no Painel ou no Mercado Financeiro; após falhas o intervalo aumenta (backoff). O botão
+"Atualizar" tem espera de 15 s entre cliques.
+
+**Falhas:** a última cotação válida é preservada e marcada como "Desatualizado" (com a hora da última consulta);
+nunca aparece zero ou valor inventado. Sem dados anteriores, aparece "Indisponível" e o botão "Tentar novamente".
+A tela distingue o horário da **cotação** (informado pela fonte, em Brasília) do horário da **consulta**.
+
+**Simulador:** aportes no fim de cada mês, `saldo = saldo anterior × (1 + taxa/100) + aporte`; com taxa 0 o saldo
+final é exatamente o inicial mais os aportes. Três cenários com taxas editáveis (padrões hipotéticos 0,50 /
+0,80 / 1,20 % ao mês), prazo de 1 mês a 50 anos, gráfico e tabela mensal/anual. Resultados **brutos e nominais**
+(sem impostos, taxas ou inflação) e **não são garantia de rendimento**.
+
+### Ativar o Ibovespa (configuração externa)
+1. Crie uma conta gratuita na brapi e copie seu token.
+2. Crie um Cloudflare Worker com o conteúdo de `serverless/brapi-proxy.js`.
+3. No Worker, crie o **segredo** `BRAPI_TOKEN` e a variável `ALLOWED_ORIGINS` (endereços do seu site, separados
+   por vírgula; para testar abrindo o arquivo do disco inclua também `null`).
+4. Cole a URL do Worker em `MercadoConfig.proxyBrapi` no início de `mercado.js`.
+
+Nunca coloque o token em `mercado.js` nem em arquivo algum do site/repositório. Com o proxy, a lista passa a
+incluir o Ibovespa e mais ações (consumo estimado: ~7 chamadas a cada 15 min com a página aberta).
+
+> O que **não** foi possível verificar: as APIs reais não foram chamadas durante o desenvolvimento (sem acesso à
+> internet no ambiente). Endpoints e campos foram conferidos nas documentações oficiais e testados com respostas
+> simuladas nesse formato. Pontos a confirmar no seu navegador: se cada fonte libera CORS para o seu endereço
+> (inclusive abrindo o `index.html` do disco) e se os limites gratuitos atuais atendem ao seu uso.
+
 ## Estrutura de arquivos
 
 ```text
@@ -163,6 +220,10 @@ controle-financeiro/
 ├── index.html   → estrutura da página (sidebar, topo, cartão de saldo, módulos)
 ├── style.css    → design system (cores, tipografia, layout, responsividade)
 ├── script.js    → camada de dados (localStorage) + interações da interface
+├── mercado.js   → módulo Mercado Financeiro (APIs, cache, conversor, simulador)
+├── mercado.css  → estilos do Mercado Financeiro
+├── serverless/
+│   └── brapi-proxy.js → proxy OPCIONAL para o Ibovespa (guarda o token no servidor)
 └── README.md    → este arquivo
 ```
 

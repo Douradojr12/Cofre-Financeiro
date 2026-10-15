@@ -910,6 +910,14 @@ const Graficos = {
 
   configurarPadroes() {
     if (typeof Chart === "undefined") return;
+    try {
+      this.aplicarPadroes();
+    } catch (erro) {
+      console.error("Cofre: não foi possível aplicar o estilo padrão dos gráficos.", erro);
+    }
+  },
+
+  aplicarPadroes() {
     Chart.defaults.font.family = "'Inter', sans-serif";
     Chart.defaults.color = "#5F555C";
     Chart.defaults.plugins.tooltip.backgroundColor = "#292126";
@@ -937,7 +945,50 @@ const Graficos = {
 
   /** Sem o Chart.js (ex.: sem internet) mostra um aviso em vez de caixas vazias. */
   marcarOffline() {
-    document.querySelectorAll(".chart-canvas-wrap").forEach((caixa) => caixa.classList.add("is-offline"));
+    document.querySelectorAll(".chart-canvas-wrap").forEach((caixa) => {
+      caixa.classList.remove("is-loading");
+      caixa.classList.add("is-offline");
+    });
+  },
+
+  /** Desenha um gráfico; se algo der errado nele, os outros continuam funcionando. */
+  criar(chave, idCanvas, configuracao) {
+    try {
+      const canvas = document.getElementById(idCanvas);
+      this.instancias[chave] = new Chart(canvas.getContext("2d"), configuracao);
+    } catch (erro) {
+      this.instancias[chave] = null;
+      console.error(`Cofre: não foi possível desenhar o gráfico "${chave}".`, erro);
+    }
+  },
+
+  /**
+   * O Chart.js ainda não chegou (internet lenta) ou não carregou: mostra o
+   * "carregando", espera o carregador da página e desenha assim que ele estiver pronto.
+   */
+  aguardarBiblioteca() {
+    const caixas = document.querySelectorAll(".chart-canvas-wrap");
+    caixas.forEach((caixa) => {
+      caixa.classList.remove("is-offline");
+      caixa.classList.add("is-loading");
+    });
+    if (this._aguardando) return;
+    this._aguardando = true;
+
+    const pronta = window.__chartPronto || Promise.resolve(typeof Chart !== "undefined");
+    pronta.then((ok) => {
+      this._aguardando = false;
+      caixas.forEach((caixa) => caixa.classList.remove("is-loading"));
+      if (!ok || typeof Chart === "undefined") {
+        this.marcarOffline();
+        return;
+      }
+      this.configurarPadroes();
+      if (!State.dados) return;
+      if (State.view === "dashboard") UI.renderDashboard();
+      else if (State.view === "relatorios") UI.renderRelatorios();
+      // nas outras telas os gráficos são desenhados quando o usuário abrir o Painel
+    });
   },
 
   destruir(chave) {
@@ -949,7 +1000,7 @@ const Graficos = {
 
   /** Recalcula e redesenha os três gráficos a partir dos dados atuais. */
   atualizar(dados) {
-    if (typeof Chart === "undefined") { this.marcarOffline(); return; } // CDN indisponível (ex.: sem internet)
+    if (typeof Chart === "undefined") { this.aguardarBiblioteca(); return; } // ainda carregando (ou sem internet)
 
     this.atualizarReceitasDespesas(dados);
     this.atualizarCategorias(dados);
@@ -966,8 +1017,7 @@ const Graficos = {
     this.destruir("receitasDespesas");
     if (semDados) return;
 
-    const ctx = document.getElementById("graficoReceitasDespesas").getContext("2d");
-    this.instancias.receitasDespesas = new Chart(ctx, {
+        this.criar("receitasDespesas", "graficoReceitasDespesas", {
       type: "bar",
       data: {
         labels: ["Receitas", "Despesas"],
@@ -1012,8 +1062,7 @@ const Graficos = {
     const labels = Object.keys(porCategoria);
     const valores = Object.values(porCategoria);
 
-    const ctx = document.getElementById("graficoCategorias").getContext("2d");
-    this.instancias.categorias = new Chart(ctx, {
+        this.criar("categorias", "graficoCategorias", {
       type: "doughnut",
       data: {
         labels,
@@ -1050,7 +1099,7 @@ const Graficos = {
    * inteiro, mês a mês. As parcelas em andamento entram como despesas.
    */
   atualizarRelatorios(dados, mes, ano) {
-    if (typeof Chart === "undefined") { this.marcarOffline(); return; }
+    if (typeof Chart === "undefined") { this.aguardarBiblioteca(); return; }
 
     const despesasTodas = todasAsDespesas(dados);
     const receitasPeriodo = filtrarPorMesAno(dados.receitas, mes, ano);
@@ -1085,7 +1134,7 @@ const Graficos = {
     this.alternarVazio("graficoRelResumo", semResumo);
     this.destruir("relResumo");
     if (!semResumo) {
-      this.instancias.relResumo = new Chart(document.getElementById("graficoRelResumo").getContext("2d"), {
+      this.criar("relResumo", "graficoRelResumo", {
         type: "bar",
         data: {
           labels: ["Receitas", "Despesas", "Saldo"],
@@ -1110,7 +1159,7 @@ const Graficos = {
     this.alternarVazio("graficoRelCategorias", categorias.length === 0);
     this.destruir("relCategorias");
     if (categorias.length > 0) {
-      this.instancias.relCategorias = new Chart(document.getElementById("graficoRelCategorias").getContext("2d"), {
+      this.criar("relCategorias", "graficoRelCategorias", {
         type: "bar",
         data: {
           labels: categorias.map(([nome]) => nome),
@@ -1143,7 +1192,7 @@ const Graficos = {
     this.alternarVazio("graficoRelAnual", semAno);
     this.destruir("relAnual");
     if (!semAno) {
-      this.instancias.relAnual = new Chart(document.getElementById("graficoRelAnual").getContext("2d"), {
+      this.criar("relAnual", "graficoRelAnual", {
         type: "bar",
         data: {
           labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
@@ -1181,8 +1230,7 @@ const Graficos = {
     const datasIso = Object.keys(porData);
     const valoresAcumulados = Object.values(porData);
 
-    const ctx = document.getElementById("graficoEvolucaoSaldo").getContext("2d");
-    this.instancias.evolucaoSaldo = new Chart(ctx, {
+        this.criar("evolucaoSaldo", "graficoEvolucaoSaldo", {
       type: "line",
       data: {
         labels: datasIso.map(Formato.dataCurta),
@@ -1520,6 +1568,7 @@ const UI = {
       parcelas: ["Parcelas", "Acompanhe suas compras parceladas."],
       cartoes: ["Cartões", "Limites, compras e faturas dos seus cartões de crédito."],
       relatorios: ["Relatórios", "Veja como estão suas finanças no período selecionado."],
+      mercado: ["Mercado Financeiro", "Câmbio, bolsa, criptomoedas e simulador de rendimentos."],
     };
     const [titulo, subtitulo] = titulos[view] || ["Cofre", ""];
     this.els.pageTitle.textContent = titulo;
@@ -1548,6 +1597,7 @@ const UI = {
       this.renderCartoes();
     }
     if (view === "relatorios") this.renderRelatorios();
+    if (view === "mercado" && typeof Mercado !== "undefined") Mercado.aoAbrir();
 
     MenuMobile.fechar();
     window.scrollTo(0, 0);
@@ -1593,7 +1643,7 @@ const UI = {
   /** Cards de cada tela entram em sequência (cada um recebe seu índice --i). */
   prepararEscalonamento() {
     document.querySelectorAll(".view").forEach((tela) => {
-      tela.querySelectorAll(".summary-card, .form-card, .list-card, .chart-card").forEach((card, indice) => {
+      tela.querySelectorAll(".summary-card, .form-card, .list-card, .chart-card, .mk-card").forEach((card, indice) => {
         card.classList.add("stagger");
         card.style.setProperty("--i", indice);
       });
@@ -1708,6 +1758,15 @@ const UI = {
 
     // ---------- cartões de crédito (faturas separadas das despesas) ----------
     this.renderDashboardCartoes(saldo);
+
+    // ---------- mercado financeiro (resumo; isolado dos dados pessoais) ----------
+    if (typeof Mercado !== "undefined") {
+      try {
+        Mercado.aoAbrirDashboard();
+      } catch (erro) {
+        console.error("Cofre: resumo do mercado indisponível.", erro);
+      }
+    }
 
     // ---------- gráficos ----------
     Graficos.atualizar(State.dados);
@@ -2986,6 +3045,7 @@ function iniciar() {
   configurarFiltrosDespesas();
   configurarRelatorios();
   configurarCartoes();
+  if (typeof Mercado !== "undefined") Mercado.iniciar();
   configurarMovimento();
   Graficos.configurarPadroes();
 
